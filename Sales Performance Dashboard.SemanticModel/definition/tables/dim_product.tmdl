@@ -21,9 +21,8 @@ table dim_product
 		mode: import
 		source =
 				let
-					Source = Csv.Document(File.Contents(DataFolder & "dim_product.csv"), [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-					Typed = Table.TransformColumnTypes(Promoted, {{"product", type text}, {"category", type text}}, "en-US")
+					Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("bZA9T4RAEIb/yoT6KLSxFjhDIqfFqleQK4ZlDia37Gz2I/H+vYs0JlI/79dM3xePTyVbPcNJLEfxxaFoODiD91BcDn1RmURRJM6gHOGNVsFzGll+aSP6xnYCFTGy2JVpTSGIZ9r8Rz+JlYU11DPy6n5JPjclTxv/juQtGlCqgYePKgtUnoHThjt0Udyab8ed9BPpGS3r7H+l+yDo91RvwoHKGq0mY9a5LeHoZrGZ/71GLegjdMcGOlxcRq0sBO/XK+ttzaeqyhpqHAzt1Jxp0LhA22T2xSNtoWf2ZLIuPziFf7bLDw==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [product = _t, category = _t]),
+					Typed = Table.TransformColumnTypes(Source, {{"product", type text}, {"category", type text}}, "en-US")
 				in
 					Typed
 

@@ -5,18 +5,21 @@ Generates the Power BI project (PBIP / PBIR format) for the sales dashboard:
     Sales Performance Dashboard.SemanticModel/   star schema, relationships, DAX measures (TMDL)
     Sales Performance Dashboard.Report/          2 pages of visuals (PBIR) + custom theme
 
-Open the .pbip in Power BI Desktop. The model reads the CSVs in ./data through a
-`DataFolder` parameter (Home > Transform data > Edit parameters) so the project
-also works after being moved.
+Open the .pbip in Power BI Desktop. The CSVs in ./data are embedded in the model
+(the same storage "Enter data" uses), so the project opens on any machine with no
+file paths to fix.
 
     python export_data.py      # refresh data/*.csv from the ETL warehouse
     python build_project.py    # regenerate the project files
 """
 
+import base64
+import csv
 import json
 import os
 import shutil
 import uuid
+import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "Sales Performance Dashboard"
@@ -48,12 +51,26 @@ def write_json(path, obj):
 T = "\t"
 
 
+def embedded_rows(csv_name):
+    """CSV -> raw-deflate + base64 of a JSON list of rows (what Power BI's 'Enter data' stores)."""
+    with open(os.path.join(HERE, "data", csv_name), newline="", encoding="utf-8") as f:
+        rows = list(csv.reader(f))
+    header, body = rows[0], rows[1:]
+    raw = json.dumps(body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    comp = zlib.compressobj(9, zlib.DEFLATED, -15)      # raw deflate, no zlib header
+    blob = comp.compress(raw) + comp.flush()
+    return header, base64.b64encode(blob).decode("ascii")
+
+
 def m_source(csv, ncols, types):
+    header, b64 = embedded_rows(csv)
+    assert header == [c for c, _ in types], f"{csv}: header {header} != model columns"
     type_list = ", ".join(f'{{"{c}", {t}}}' for c, t in types)
+    col_types = ", ".join(f"{c} = _t" for c in header)
     return (f'{T*4}let\n'
-            f'{T*5}Source = Csv.Document(File.Contents(DataFolder & "{csv}"), [Delimiter=",", Columns={ncols}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n'
-            f'{T*5}Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n'
-            f'{T*5}Typed = Table.TransformColumnTypes(Promoted, {{{type_list}}}, "en-US")\n'
+            f'{T*5}Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("{b64}", BinaryEncoding.Base64), Compression.Deflate)), '
+            f'let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [{col_types}]),\n'
+            f'{T*5}Typed = Table.TransformColumnTypes(Source, {{{type_list}}}, "en-US")\n'
             f'{T*4}in\n'
             f'{T*5}Typed')
 
@@ -145,13 +162,8 @@ def build_model():
     write(os.path.join(d, "model.tmdl"),
           "model Model\n\tculture: en-US\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
           "\tdiscourageImplicitMeasures\n\tsourceQueryCulture: en-US\n\n"
-          'annotation PBI_QueryOrder = ["DataFolder","fact_sales","dim_date","dim_product"]\n\n'
-          "ref table fact_sales\nref table dim_date\nref table dim_product\nref table _Measures\n\n"
-          "ref expression DataFolder\n")
-    write(os.path.join(d, "expressions.tmdl"),
-          f'expression DataFolder = "{DATA_DIR}" meta [IsParameterQuery=true, Type="Text", '
-          f'IsParameterQueryRequired=true]\n{T}lineageTag: {guid("DataFolder")}\n'
-          f'\n{T}annotation PBI_ResultType = Text\n')
+          'annotation PBI_QueryOrder = ["fact_sales","dim_date","dim_product"]\n\n'
+          "ref table fact_sales\nref table dim_date\nref table dim_product\nref table _Measures\n")
 
     write(os.path.join(d, "tables", "fact_sales.tmdl"), table_tmdl("fact_sales", "fact_sales.csv", [
         ("order_id", "text"), ("order_date", "date", "Long Date"), ("customer", "text"),

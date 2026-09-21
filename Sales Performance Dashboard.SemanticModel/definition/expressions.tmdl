@@ -1,4 +1,0 @@
-expression DataFolder = "D:\Adnan Desktop\Finance\sales-powerbi-dashboard\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: b0033847-f8cc-5386-9007-f235a52cf9b1
-
-	annotation PBI_ResultType = Text

@@ -69,10 +69,8 @@ All 14 are in `powerbi/measures.dax`. The main ones:
 
 You need Power BI Desktop and to be signed in.
 
-1. Open `Sales Performance Dashboard.pbip`.
-2. The model reads the CSV files in `data/` through a parameter called
-   `DataFolder`. If you moved the folder, go to Home > Transform data > Edit
-   parameters and point it at your `data` folder, then Refresh.
+Open `Sales Performance Dashboard.pbip`. The data is stored inside the model, so
+there are no file paths to fix and no refresh needed.
 
 If Desktop shows an "Issues were found" message, send me the text and I'll fix
 the project. If it can't be fixed quickly, the model can be rebuilt by hand:
@@ -84,7 +82,7 @@ from `powerbi/measures.dax`.
 
 ```bash
 python export_data.py    # rewrites data/*.csv from the ETL warehouse
-python build_project.py  # regenerates the Power BI project files
+python build_project.py  # regenerates the Power BI project, embedding the new data
 ```
 
 ## What has been checked
@@ -92,7 +90,8 @@ python build_project.py  # regenerates the Power BI project files
 - The report files (pages and visuals) validate against Power BI's own JSON
   schemas, using the schema versions bundled with Desktop 2.147.
 - Power BI's model parser loads the semantic model: 4 tables, 14 measures, 2
-  relationships, the `DataFolder` parameter and the date table.
+  relationships and the date table.
+- The data embedded in the model matches the CSV files row for row.
 - Every field used by a visual exists in the model (36 references checked).
 - Not checked yet: that Desktop renders it as intended.
 
@@ -102,7 +101,7 @@ python build_project.py  # regenerates the Power BI project files
 Sales Performance Dashboard.pbip           open this
 Sales Performance Dashboard.SemanticModel/ tables, relationships, measures (TMDL)
 Sales Performance Dashboard.Report/        pages, visuals and theme (PBIR)
-data/                                      fact_sales, dim_date, dim_product CSVs
+data/                                      fact_sales, dim_date, dim_product CSVs (source of the embedded data)
 powerbi/measures.dax                       the measures as plain text
 export_data.py  build_project.py           data export and project generator
 ```

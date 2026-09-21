@@ -4,11 +4,9 @@ model Model
 	discourageImplicitMeasures
 	sourceQueryCulture: en-US
 
-annotation PBI_QueryOrder = ["DataFolder","fact_sales","dim_date","dim_product"]
+annotation PBI_QueryOrder = ["fact_sales","dim_date","dim_product"]
 
 ref table fact_sales
 ref table dim_date
 ref table dim_product
 ref table _Measures
-
-ref expression DataFolder
