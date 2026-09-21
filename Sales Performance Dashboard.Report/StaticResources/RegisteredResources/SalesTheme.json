@@ -1,0 +1,55 @@
+{
+  "name": "Sales Theme",
+  "dataColors": [
+    "#1F3864",
+    "#2F5597",
+    "#5B9BD5",
+    "#70AD47",
+    "#ED7D31",
+    "#FFC000",
+    "#9E6BD1",
+    "#A5A5A5"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#252423",
+  "tableAccent": "#1F3864",
+  "good": "#2E7D32",
+  "neutral": "#FFC000",
+  "bad": "#C62828",
+  "maximum": "#1F3864",
+  "center": "#5B9BD5",
+  "minimum": "#DEEBF7",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1F3864"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1F3864"
+    },
+    "header": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1F3864"
+    },
+    "label": {
+      "fontSize": 9,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "*": [
+          {
+            "fontFamily": "Segoe UI"
+          }
+        ]
+      }
+    }
+  }
+}

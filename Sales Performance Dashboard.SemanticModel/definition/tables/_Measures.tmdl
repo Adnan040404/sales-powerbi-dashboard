@@ -1,0 +1,84 @@
+table _Measures
+	lineageTag: 0e7d102c-1767-5c10-8ecb-c7301a43d57b
+
+	/// Revenue after discounts.
+	measure 'Total Revenue' = SUM(fact_sales[revenue])
+		formatString: \$#,0
+		lineageTag: 72e94dee-6fda-5aa1-9dd5-d0a5b2f6fd27
+
+	/// Number of order lines.
+	measure Orders = COUNTROWS(fact_sales)
+		formatString: #,0
+		lineageTag: 69ddce38-c2e1-5afc-8ca2-2d710b621082
+
+	measure 'Units Sold' = SUM(fact_sales[quantity])
+		formatString: #,0
+		lineageTag: 14b80fdb-3d39-54d1-8649-c2fa06f0a481
+
+	measure 'Avg Order Value' = DIVIDE([Total Revenue], [Orders])
+		formatString: \$#,0.00
+		lineageTag: d9bbc313-5877-5789-a195-2cc2a7a60bfc
+
+	/// Revenue before discounts.
+	measure 'Gross Revenue' = SUMX(fact_sales, fact_sales[quantity] * fact_sales[unit_price])
+		formatString: \$#,0
+		lineageTag: b9941fb8-1113-5979-9348-a0f596cbe713
+
+	measure 'Discounts Given' = [Gross Revenue] - [Total Revenue]
+		formatString: \$#,0
+		lineageTag: 601f1b23-d413-5f21-b983-f122efeacd70
+
+	measure 'Discount Rate' = DIVIDE([Discounts Given], [Gross Revenue])
+		formatString: 0.0%
+		lineageTag: be227bc9-fe21-59e7-8067-67f907c71c1d
+
+	/// Revenue in the previous calendar month (use with a month on rows).
+	measure 'Revenue Prior Month' = CALCULATE([Total Revenue], DATEADD(dim_date[Date], -1, MONTH))
+		formatString: \$#,0
+		lineageTag: 9450bb80-fb53-5ce3-aff5-1725eea9d159
+
+	/// Month-over-month growth.
+	measure 'Revenue MoM %' = DIVIDE([Total Revenue] - [Revenue Prior Month], [Revenue Prior Month])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: 5a7d227a-d62f-5456-9243-a7c92a6139a7
+
+	measure 'Revenue YTD' = TOTALYTD([Total Revenue], dim_date[Date])
+		formatString: \$#,0
+		lineageTag: f762f35b-3f5a-542d-9af5-5efb1bb1f891
+
+	/// Share of revenue within the current slicer selection.
+	measure 'Revenue Share %' = DIVIDE([Total Revenue], CALCULATE([Total Revenue], ALLSELECTED()))
+		formatString: 0.0%
+		lineageTag: be18a958-937c-5f39-a07e-c1e27838945e
+
+	/// Distinct named customers.
+	measure 'Active Customers' = CALCULATE(DISTINCTCOUNT(fact_sales[customer]), fact_sales[customer] <> "Unknown")
+		formatString: #,0
+		lineageTag: 06ce0758-a7f2-5155-b40b-74644b21dd47
+
+	measure 'Revenue per Customer' = DIVIDE([Total Revenue], [Active Customers])
+		formatString: \$#,0.00
+		lineageTag: 36ae61c6-8d8c-5bf3-baf0-0bf03932c6aa
+
+	measure 'Online Share %' = DIVIDE(CALCULATE([Total Revenue], fact_sales[channel] = "Online"), [Total Revenue])
+		formatString: 0.0%
+		lineageTag: 5dbf72cd-9769-506b-9f6e-2a5bcdab94c5
+
+	column Placeholder
+		isHidden
+		dataType: string
+		lineageTag: 648c6a16-0e8a-5bb0-84ad-3f3098e96a12
+		summarizeBy: none
+		sourceColumn: Placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+					Source = #table(type table [Placeholder = text], {})
+				in
+					Source
+
+	annotation PBI_ResultType = Table

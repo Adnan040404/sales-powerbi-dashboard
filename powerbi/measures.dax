@@ -1,0 +1,53 @@
+// DAX measures for the Sales Performance Dashboard.
+// Create a blank table called _Measures (Home > Enter data), then add each measure
+// below with Modeling > New measure. Model needs: fact_sales, dim_date (marked as
+// date table, related on order_date), dim_product (related on product).
+
+// Revenue after discounts.
+Total Revenue = SUM(fact_sales[revenue])
+// format: $#,0
+
+// Number of order lines.
+Orders = COUNTROWS(fact_sales)
+// format: #,0
+
+Units Sold = SUM(fact_sales[quantity])
+// format: #,0
+
+Avg Order Value = DIVIDE([Total Revenue], [Orders])
+// format: $#,0.00
+
+// Revenue before discounts.
+Gross Revenue = SUMX(fact_sales, fact_sales[quantity] * fact_sales[unit_price])
+// format: $#,0
+
+Discounts Given = [Gross Revenue] - [Total Revenue]
+// format: $#,0
+
+Discount Rate = DIVIDE([Discounts Given], [Gross Revenue])
+// format: 0.0%
+
+// Revenue in the previous calendar month (use with a month on rows).
+Revenue Prior Month = CALCULATE([Total Revenue], DATEADD(dim_date[Date], -1, MONTH))
+// format: $#,0
+
+// Month-over-month growth.
+Revenue MoM % = DIVIDE([Total Revenue] - [Revenue Prior Month], [Revenue Prior Month])
+// format: +0.0%;-0.0%;0.0%
+
+Revenue YTD = TOTALYTD([Total Revenue], dim_date[Date])
+// format: $#,0
+
+// Share of revenue within the current slicer selection.
+Revenue Share % = DIVIDE([Total Revenue], CALCULATE([Total Revenue], ALLSELECTED()))
+// format: 0.0%
+
+// Distinct named customers.
+Active Customers = CALCULATE(DISTINCTCOUNT(fact_sales[customer]), fact_sales[customer] <> "Unknown")
+// format: #,0
+
+Revenue per Customer = DIVIDE([Total Revenue], [Active Customers])
+// format: $#,0.00
+
+Online Share % = DIVIDE(CALCULATE([Total Revenue], fact_sales[channel] = "Online"), [Total Revenue])
+// format: 0.0%

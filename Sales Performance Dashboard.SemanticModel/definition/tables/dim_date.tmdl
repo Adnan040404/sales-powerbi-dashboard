@@ -1,0 +1,106 @@
+table dim_date
+	lineageTag: b0ce914a-c8cc-5cd6-a349-3daad3294967
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: be1b96c6-950f-576b-a83f-fe50caa2efa6
+		summarizeBy: none
+		isKey
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 9a2ec259-7437-5ff0-9422-25b7182a5592
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: string
+		lineageTag: 42354949-1080-5be4-be4d-fa42650c4703
+		summarizeBy: none
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: d6465c54-d2c7-5514-8757-0aac95b6fcc3
+		summarizeBy: none
+		sourceColumn: MonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: bcb3eb02-dfd4-5dc7-b68e-2b25054bf58d
+		summarizeBy: none
+		sortByColumn: MonthNumber
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYear
+		dataType: string
+		lineageTag: d5011b81-a5cc-5705-83a1-553d0999c76e
+		summarizeBy: none
+		sortByColumn: MonthStart
+		sourceColumn: MonthYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStart
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 47337db6-3014-5bdc-b2c9-362d5fd8195b
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+		annotation SummarizationSetBy = Automatic
+		annotation UnderlyingDateTimeDataType = Date
+
+	column WeekdayNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 7775754e-3837-5f1a-b728-747e00557c1e
+		summarizeBy: none
+		sourceColumn: WeekdayNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column Weekday
+		dataType: string
+		lineageTag: b9db864f-242b-59af-9f39-e0eb19ee355e
+		summarizeBy: none
+		sortByColumn: WeekdayNumber
+		sourceColumn: Weekday
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWeekend
+		dataType: boolean
+		lineageTag: 9fd458d0-cc28-57e0-86ed-4edf8567078a
+		summarizeBy: none
+		sourceColumn: IsWeekend
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents(DataFolder & "dim_date.csv"), [Delimiter=",", Columns=10, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					Typed = Table.TransformColumnTypes(Promoted, {{"Date", type date}, {"Year", Int64.Type}, {"Quarter", type text}, {"MonthNumber", Int64.Type}, {"Month", type text}, {"MonthYear", type text}, {"MonthStart", type date}, {"WeekdayNumber", Int64.Type}, {"Weekday", type text}, {"IsWeekend", type logical}}, "en-US")
+				in
+					Typed
+
+	annotation PBI_ResultType = Table
