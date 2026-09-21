@@ -17,9 +17,15 @@ import sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_DB = os.path.join(HERE, "..", "sales-data-cleaning-automation", "output",
-                          "sales_warehouse.db")
+DEFAULT_DB = os.path.join(HERE, "..", "sales-data-etl-pipeline", "output", "sales_warehouse.db")
 DB = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DB
+if not os.path.exists(DB):
+    raise SystemExit(
+        f"Warehouse not found: {os.path.abspath(DB)}\n"
+        "Clone https://github.com/Adnan040404/sales-data-etl-pipeline next to this folder, run\n"
+        "`python run_pipeline.py` there, then run this script again. You can also pass the path\n"
+        "to sales_warehouse.db as an argument. (Not needed just to open the dashboard: the\n"
+        "data in data/ is already included.)")
 OUT = os.path.join(HERE, "data")
 os.makedirs(OUT, exist_ok=True)
 
